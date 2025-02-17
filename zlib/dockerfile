@@ -1,0 +1,23 @@
+ARG BASE='ubuntu:24.04'
+ARG COMMIT='v1.3.1'
+ARG CMAKE_BUILD_FLAGS=''
+ARG INSTALL_DIR='/out'
+
+FROM $BASE AS base
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+    cmake \
+    ninja-build \
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+RUN git clone https://github.com/madler/zlib.git \
+    --depth 1 --branch $COMMIT \
+    && cd zlib \
+    && cmake -S . -B build $CMAKE_BUILD_FLAGS \
+    && cmake --build build \
+    && cmake --install build --prefix $INSTALL_DIR

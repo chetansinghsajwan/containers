@@ -1,0 +1,42 @@
+ARG BASE='ubuntu:24.04'
+
+FROM $BASE AS base
+
+ARG LLVM_MINGW_TOOLCHAIN_URI="20250114/llvm-mingw-20250114-ucrt-ubuntu-20.04-x86_64.tar.xz"
+ENV CMAKE_TOOLCHAIN_DIR="/usr/local/cmake"
+
+# -------------------------------------------------------------------------------------------------
+# Install build tools
+# -------------------------------------------------------------------------------------------------
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+    clang-18 \
+    libc++-18 \
+    ninja-build \
+    cmake \
+    pkg-config \
+    wget \
+    xz-utils \
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# -------------------------------------------------------------------------------------------------
+# Install llvm-mingw toolchain
+# -------------------------------------------------------------------------------------------------
+
+ENV TOOLCHAIN_ROOT="/opt/llvm-mingw"
+
+RUN wget https://github.com/mstorsjo/llvm-mingw/releases/download/$LLVM_MINGW_TOOLCHAIN_URI \
+    -O llvm-mingw.tar.xz \
+    && mkdir $TOOLCHAIN_ROOT \
+    && tar -xf llvm-mingw.tar.xz --directory $TOOLCHAIN_ROOT --strip-components=1 \
+    && rm llvm-mingw.tar.xz
+
+# -------------------------------------------------------------------------------------------------
+# Setup dev environment
+# -------------------------------------------------------------------------------------------------
+
+COPY toolchains/ $CMAKE_TOOLCHAIN_DIR
+WORKDIR /app

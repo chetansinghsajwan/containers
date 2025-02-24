@@ -23,6 +23,8 @@ RUN apt-get update \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+ENV CMAKE_GENERATOR="Ninja"
+
 # -------------------------------------------------------------------------------------------------
 # Install llvm-mingw toolchain
 # -------------------------------------------------------------------------------------------------
@@ -35,9 +37,25 @@ RUN wget https://github.com/mstorsjo/llvm-mingw/releases/download/$LLVM_MINGW_TO
     && tar -xf llvm-mingw.tar.xz --directory $TOOLCHAIN_ROOT --strip-components=1 \
     && rm llvm-mingw.tar.xz
 
+COPY toolchains/ $CMAKE_TOOLCHAIN_DIR
+
+# -------------------------------------------------------------------------------------------------
+# Install dev tools
+# -------------------------------------------------------------------------------------------------
+
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends \
+    clang-format-$CLANG_VERSION \
+    clang-tidy-$CLANG_VERSION \
+    clangd-$CLANG_VERSION \
+    lldb-$CLANG_VERSION \
+    cmake-format \
+    doxygen \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
 # -------------------------------------------------------------------------------------------------
 # Setup dev environment
 # -------------------------------------------------------------------------------------------------
 
-COPY toolchains/ $CMAKE_TOOLCHAIN_DIR
 WORKDIR /app
